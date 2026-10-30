@@ -1,0 +1,49 @@
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(242, 95, 112, 0.12), transparent 27%),
+    radial-gradient(circle at 86% 14%, rgba(24, 183, 240, 0.22), transparent 30%),
+    radial-gradient(circle at 70% 82%, rgba(106, 235, 165, 0.28), transparent 32%),
+    linear-gradient(135deg, #f4fff8 0%, #e5fbea 42%, #effbff 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+@keyframes authPageEnter {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}

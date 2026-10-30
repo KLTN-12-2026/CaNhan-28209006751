@@ -1,0 +1,1114 @@
+Project Atomos {
+  database_type: 'SQL Server'
+}
+
+// Derived from database/schema/001_create_tables.sql.
+// CHECK constraints and filtered/DESC indexes are preserved in table Notes.
+// SQL remains authoritative for deployment; this file is a documentation diagram.
+
+Table dbo.Role {
+  IDRole int [pk, increment, not null]
+  TenRole nvarchar(30) [not null]
+
+  indexes {
+    (TenRole) [unique, name: 'UQ_Role_TenRole']
+  }
+}
+
+Table dbo.NguoiDung {
+  IDUser int [pk, increment, not null]
+  IDRole int [not null]
+  Username nvarchar(50) [not null]
+  Email nvarchar(100) [not null]
+  MatKhau nvarchar(500)
+  MatKhauTruocDo nvarchar(500)
+  IDGoogle nvarchar(128)
+  HoTen nvarchar(100)
+  Avatar nvarchar(max)
+  VIPHetHan datetime2
+  DaKhoa bit [not null, default: 0]
+  DaXoa bit [not null, default: 0]
+  NgayTao datetime2 [not null, default: `SYSUTCDATETIME()`]
+  NgayCapNhat datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  indexes {
+    (Username) [unique, name: 'UQ_NguoiDung_Username']
+    (Email) [unique, name: 'UQ_NguoiDung_Email']
+    (IDRole) [name: 'IX_NguoiDung_IDRole']
+  }
+
+  Note: '''
+  CREATE UNIQUE INDEX UX_NguoiDung_IDGoogle ON dbo.NguoiDung(IDGoogle) WHERE IDGoogle IS NOT NULL;
+  '''
+}
+
+Table dbo.NhatKyQuanTri {
+  IDAuditLog bigint [pk, increment, not null]
+  IDAdmin int [not null]
+  HanhDong nvarchar(50) [not null]
+  LoaiDoiTuong nvarchar(50) [not null]
+  IDDoiTuong int
+  ChiTiet nvarchar(500)
+  NgayTao datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  indexes {
+    (NgayTao, HanhDong) [name: 'IX_NhatKyQuanTri_NgayTao_HanhDong']
+  }
+}
+
+Table dbo.NhatKyHoatDong {
+  IDNhatKyHoatDong bigint [pk, increment, not null]
+  IDUser int
+  LoaiSuKien nvarchar(50) [not null]
+  XayRaLuc datetime2 [not null, default: `SYSUTCDATETIME()`]
+  LoaiDoiTuong nvarchar(50)
+  IDDoiTuong int
+  MetadataJson nvarchar(max)
+
+  indexes {
+    (XayRaLuc, LoaiSuKien) [name: 'IX_NhatKyHoatDong_XayRaLuc_LoaiSuKien']
+    (IDUser, XayRaLuc) [name: 'IX_NhatKyHoatDong_IDUser_XayRaLuc']
+    (LoaiDoiTuong, IDDoiTuong) [name: 'IX_NhatKyHoatDong_DoiTuong']
+  }
+}
+
+Table dbo.GioiHanSuDung {
+  IDUser int [pk, not null]
+  SandboxCuaSoBatDauLuc datetime2
+  SandboxSoGiayDaDung int [not null, default: 0]
+  SandboxHeartbeatLuc datetime2
+  SandboxDangHoatDong bit [not null, default: 0]
+
+  Note: '''
+  CONSTRAINT CK_GioiHanSuDung_SandboxSoGiayDaDung CHECK (SandboxSoGiayDaDung BETWEEN 0 AND 600)
+  '''
+}
+
+Table dbo.CauHinhThanhToan {
+  IDCauHinhThanhToan int [pk, increment, not null]
+  NhaCungCap nvarchar(50) [not null]
+  GiaVip decimal(18,2) [not null]
+  TienTe nvarchar(3) [not null, default: 'VND']
+  TenNguoiNhan nvarchar(150)
+  TaiKhoanNhan nvarchar(100)
+  NganHangNhan nvarchar(150)
+  MaNganHang nvarchar(20)
+  MaMerchant nvarchar(100)
+  DangHoatDong bit [not null, default: 1]
+  TaoLuc datetime2 [not null, default: `SYSUTCDATETIME()`]
+  CapNhatLuc datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  indexes {
+    (NhaCungCap) [name: 'IX_CauHinhThanhToan_NhaCungCap']
+  }
+
+  Note: '''
+  CONSTRAINT CK_CauHinhThanhToan_GiaVip CHECK (GiaVip > 0)
+  '''
+}
+
+Table dbo.DonThanhToan {
+  IDDonThanhToan int [pk, increment, not null]
+  IDUser int [not null]
+  MaDonHang nvarchar(40) [not null]
+  SoTien decimal(18,2) [not null]
+  TienTe nvarchar(3) [not null]
+  TrangThai nvarchar(20) [not null]
+  NhaCungCap nvarchar(50) [not null]
+  MoTa nvarchar(250) [not null]
+  MaDonHangNhaCungCap nvarchar(100)
+  MaThanhToanNhaCungCap nvarchar(100)
+  MaGiaoDichNhaCungCap nvarchar(100)
+  CheckoutUrl nvarchar(500)
+  QrPayload nvarchar(max)
+  NoiDungChuyenKhoan nvarchar(250)
+  TaoLuc datetime2 [not null]
+  HetHanLuc datetime2 [not null]
+  ThanhToanLuc datetime2
+  XacNhanLuc datetime2
+  MetadataJson nvarchar(max)
+
+  indexes {
+    (MaDonHang) [unique, name: 'UX_DonThanhToan_MaDonHang']
+    (IDUser, TaoLuc) [name: 'IX_DonThanhToan_IDUser_TaoLuc']
+    (TrangThai, TaoLuc) [name: 'IX_DonThanhToan_TrangThai_TaoLuc']
+  }
+
+  Note: '''
+  CONSTRAINT CK_DonThanhToan_SoTien CHECK (SoTien > 0)
+  '''
+}
+
+Table dbo.GiaoDichThanhToan {
+  IDGiaoDichThanhToan bigint [pk, increment, not null]
+  IDDonThanhToan int [not null]
+  NhaCungCap nvarchar(50) [not null]
+  MaGiaoDichNhaCungCap nvarchar(100) [not null]
+  SoTien decimal(18,2) [not null]
+  TienTe nvarchar(3) [not null]
+  TrangThai nvarchar(20) [not null]
+  ThoiGianGiaoDich datetime2 [not null]
+  ThamChieuRaw nvarchar(500)
+  MetadataJson nvarchar(max)
+  TaoLuc datetime2 [not null]
+  XacNhanLuc datetime2
+  IDXacNhanBoiAdmin int
+
+  indexes {
+    (NhaCungCap, MaGiaoDichNhaCungCap) [unique, name: 'UX_GiaoDichThanhToan_NhaCungCap_MaGiaoDich']
+    (TrangThai, ThoiGianGiaoDich) [name: 'IX_GiaoDichThanhToan_TrangThai_ThoiGian']
+    (IDDonThanhToan, TaoLuc) [name: 'IX_GiaoDichThanhToan_IDDon_TaoLuc']
+  }
+
+  Note: '''
+  CONSTRAINT CK_GiaoDichThanhToan_SoTien CHECK (SoTien > 0)
+  CREATE UNIQUE INDEX UX_GiaoDichThanhToan_ConfirmedOrder ON dbo.GiaoDichThanhToan(IDDonThanhToan) WHERE TrangThai = N'Confirmed';
+  '''
+}
+
+Table dbo.PasswordResetTokens {
+  IDReset int [pk, increment, not null]
+  IDUser int [not null]
+  Token nvarchar(64) [not null]
+  HetHan datetime2 [not null]
+  DaSuDung bit [not null, default: 0]
+  FailedAttempts int [not null, default: 0]
+  NgayTao datetime2 [not null, default: `SYSUTCDATETIME()`]
+  IpAddress nvarchar(45)
+  UserAgent nvarchar(512)
+
+  indexes {
+    (Token) [unique, name: 'UQ_PasswordResetTokens_Token']
+    (IDUser) [name: 'IX_PasswordResetTokens_IDUser']
+    (NgayTao) [name: 'IX_PasswordResetTokens_NgayTao']
+  }
+}
+
+Table dbo.AuthSessions {
+  IDAuthSession bigint [pk, increment, not null]
+  IDUser int [not null]
+  SessionSecretHash binary(32) [not null]
+  AuthMethod nvarchar(20) [not null]
+  CreatedAt datetime2(7) [not null]
+  ExpiresAt datetime2(7) [not null]
+  RevokedAt datetime2(7)
+  RevokeReason nvarchar(200)
+
+  indexes {
+    (SessionSecretHash) [unique, name: 'UX_AuthSessions_SessionSecretHash']
+    (IDUser, RevokedAt, ExpiresAt) [name: 'IX_AuthSessions_IDUser_RevokedAt_ExpiresAt']
+  }
+
+  Note: '''
+  CONSTRAINT CK_AuthSessions_AuthMethod CHECK ( AuthMethod COLLATE Latin1_General_100_BIN2 IN (N'Password', N'Google'))
+  CONSTRAINT CK_AuthSessions_ExpiresAt CHECK (ExpiresAt > CreatedAt)
+  '''
+}
+
+Table dbo.ChuongHoc {
+  IDChuong int [pk, increment, not null]
+  TenChuong nvarchar(150) [not null]
+  MoTa nvarchar(max)
+  ThuTu int [not null]
+
+  indexes {
+    (ThuTu) [unique, name: 'UQ_ChuongHoc_ThuTu']
+  }
+
+  Note: '''
+  CONSTRAINT CK_ChuongHoc_ThuTu CHECK (ThuTu > 0)
+  '''
+}
+
+Table dbo.BaiHoc {
+  IDBaiHoc int [pk, increment, not null]
+  IDChuong int [not null]
+  TenBaiHoc nvarchar(150) [not null]
+  NoiDung nvarchar(max)
+  MinhHoaPhanUngJson nvarchar(max)
+  ThuTu int [not null]
+
+  indexes {
+    (IDChuong, ThuTu) [unique, name: 'UQ_BaiHoc_Chuong_ThuTu']
+    (IDChuong) [name: 'IX_BaiHoc_IDChuong']
+  }
+
+  Note: '''
+  CONSTRAINT CK_BaiHoc_ThuTu CHECK (ThuTu > 0)
+  CONSTRAINT CK_BaiHoc_MinhHoaPhanUngJson CHECK (MinhHoaPhanUngJson IS NULL OR ISJSON(MinhHoaPhanUngJson) = 1)
+  '''
+}
+
+Table dbo.GhiChu {
+  IDGhiChu int [pk, increment, not null]
+  IDUser int [not null]
+  IDBaiHoc int
+  TieuDe nvarchar(150)
+  NoiDung nvarchar(max) [not null, default: '']
+  NgayTao datetime2 [not null, default: `SYSUTCDATETIME()`]
+  NgayCapNhat datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  Note: '''
+  CREATE INDEX IX_GhiChu_IDUser_NgayCapNhat ON dbo.GhiChu(IDUser, NgayCapNhat DESC);
+  '''
+}
+
+Table dbo.TienDoHocTap {
+  IDUser int [not null]
+  IDBaiHoc int [not null]
+  DaHoanThanh bit [not null, default: 0]
+  LanHocGanNhat datetime2
+  PhanTramHoanThanh tinyint [not null, default: 0]
+
+  indexes {
+    (IDUser, IDBaiHoc) [pk, name: 'PK_TienDoHocTap']
+  }
+
+  Note: '''
+  CONSTRAINT CK_TienDoHocTap_PhanTram CHECK (PhanTramHoanThanh BETWEEN 0 AND 100)
+  '''
+}
+
+Table dbo.HoSoHocTap {
+  IDUser int [pk, not null]
+  ChuoiHienTai int [not null, default: 0]
+  ChuoiCaoNhat int [not null, default: 0]
+  NgayHoanThanhOnTapCuoi date
+
+  Note: '''
+  CONSTRAINT CK_HoSoHocTap_Chuoi CHECK (ChuoiHienTai >= 0 AND ChuoiCaoNhat >= 0)
+  '''
+}
+
+Table dbo.DeBaiTap {
+  IDDeBaiTap int [pk, increment, not null]
+  IDBaiHoc int [not null]
+  TieuDe nvarchar(200) [not null]
+  MoTa nvarchar(max)
+  ThuTu int [not null, default: 1]
+  DangHoatDong bit [not null, default: 1]
+  NgayCapNhat datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  Note: '''
+  CONSTRAINT CK_DeBaiTap_ThuTu CHECK (ThuTu > 0)
+  CREATE UNIQUE INDEX UX_DeBaiTap_BaiHoc_ThuTu_Active ON dbo.DeBaiTap(IDBaiHoc, ThuTu) WHERE DangHoatDong = 1;
+  '''
+}
+
+Table dbo.BaiTap {
+  IDBaiTap int [pk, increment, not null]
+  IDBaiHoc int
+  LoaiBaiTap nvarchar(50) [not null]
+  CauHoi nvarchar(max) [not null]
+  DapAn nvarchar(max)
+  LoiGiai nvarchar(max)
+  GoiYHocLai nvarchar(max)
+  DonViDapAn nvarchar(30)
+  SaiSoChoPhep decimal(12,4)
+  DangHoatDong bit [not null, default: 1]
+  NgayCapNhat datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  indexes {
+    (IDBaiHoc) [name: 'IX_BaiTap_IDBaiHoc']
+  }
+
+  Note: '''
+  CONSTRAINT CK_BaiTap_LoaiBaiTap CHECK (LoaiBaiTap IN (N'MultipleChoice', N'NumericAnswer', N'BalanceEquation'))
+  CONSTRAINT CK_BaiTap_SaiSo CHECK (SaiSoChoPhep IS NULL OR SaiSoChoPhep >= 0)
+  '''
+}
+
+Table dbo.ChiTietDeBaiTap {
+  IDDeBaiTap int [not null]
+  IDBaiTap int [not null]
+  ThuTu int [not null]
+  DiemToiDa decimal(5,2) [not null, default: 1]
+
+  indexes {
+    (IDDeBaiTap, IDBaiTap) [pk, name: 'PK_ChiTietDeBaiTap']
+    (IDDeBaiTap, ThuTu) [unique, name: 'UQ_ChiTietDeBaiTap_ThuTu']
+    (IDBaiTap) [name: 'IX_ChiTietDeBaiTap_IDBaiTap']
+  }
+
+  Note: '''
+  CONSTRAINT CK_ChiTietDeBaiTap_ThuTu CHECK (ThuTu > 0)
+  CONSTRAINT CK_ChiTietDeBaiTap_Diem CHECK (DiemToiDa > 0)
+  '''
+}
+
+Table dbo.LuaChon {
+  IDLuaChon int [pk, increment, not null]
+  IDBaiTap int [not null]
+  NoiDung nvarchar(max) [not null]
+  LaDapAn bit [not null, default: 0]
+  ThuTu int [not null]
+
+  indexes {
+    (IDBaiTap, ThuTu) [unique, name: 'UQ_LuaChon_BaiTap_ThuTu']
+  }
+
+  Note: '''
+  CONSTRAINT CK_LuaChon_ThuTu CHECK (ThuTu > 0)
+  '''
+}
+
+Table dbo.BaiKiemTra {
+  IDBaiKiemTra int [pk, increment, not null]
+  IDChuong int
+  IDBaiHoc int
+  TenBaiKiemTra nvarchar(150) [not null]
+  MoTa nvarchar(max)
+  ThoiLuongPhut int [not null, default: 30]
+  DangHoatDong bit [not null, default: 1]
+  NgayTao datetime2 [not null, default: `SYSUTCDATETIME()`]
+  KieuChonCauHoi nvarchar(20) [not null, default: 'Fixed']
+  SoCauHoi int
+
+  Note: '''
+  CONSTRAINT CK_BaiKiemTra_ThoiLuong CHECK (ThoiLuongPhut > 0)
+  CONSTRAINT CK_BaiKiemTra_KieuChonCauHoi CHECK (KieuChonCauHoi IN (N'Fixed', N'Random'))
+  CONSTRAINT CK_BaiKiemTra_SoCauHoi CHECK (SoCauHoi IS NULL OR SoCauHoi > 0)
+  '''
+}
+
+Table dbo.ChiTietBaiKiemTra {
+  IDBaiKiemTra int [not null]
+  IDBaiTap int [not null]
+  ThuTu int [not null]
+  DiemToiDa decimal(5,2) [not null, default: 1]
+
+  indexes {
+    (IDBaiKiemTra, IDBaiTap) [pk, name: 'PK_ChiTietBaiKiemTra']
+    (IDBaiKiemTra, ThuTu) [unique, name: 'UQ_ChiTietBaiKiemTra_ThuTu']
+    (IDBaiTap) [name: 'IX_ChiTietBaiKiemTra_IDBaiTap']
+  }
+
+  Note: '''
+  CONSTRAINT CK_ChiTietBaiKiemTra_ThuTu CHECK (ThuTu > 0)
+  CONSTRAINT CK_ChiTietBaiKiemTra_Diem CHECK (DiemToiDa > 0)
+  '''
+}
+
+Table dbo.LanLamBai {
+  IDLanLam int [pk, increment, not null]
+  IDUser int [not null]
+  IDBaiKiemTra int
+  IDBaiHoc int
+  IDDeBaiTap int
+  LoaiLanLam nvarchar(20) [not null]
+  TrangThai nvarchar(20) [not null, default: 'Draft']
+  BatDauLuc datetime2 [not null, default: `SYSUTCDATETIME()`]
+  NopLuc datetime2
+  ThoiLuongGiay int
+  CapNhatLuc datetime2 [not null, default: `SYSUTCDATETIME()`]
+  HanNopLuc datetime2
+  TongDiem decimal(6,2)
+  SoCauDung int [not null, default: 0]
+  SoCauSai int [not null, default: 0]
+  PhanTramDung decimal(5,2)
+
+  indexes {
+    (IDUser) [name: 'IX_LanLamBai_IDUser']
+    (IDDeBaiTap) [name: 'IX_LanLamBai_IDDeBaiTap']
+    (TrangThai, LoaiLanLam, NopLuc) [name: 'IX_LanLamBai_Dashboard']
+  }
+
+  Note: '''
+  CONSTRAINT CK_LanLamBai_Loai CHECK (LoaiLanLam IN (N'Practice', N'DailyReview', N'Test'))
+  CONSTRAINT CK_LanLamBai_TrangThai CHECK (TrangThai IN (N'Draft', N'Submitted', N'Expired'))
+  CONSTRAINT CK_LanLamBai_ThoiLuong CHECK (ThoiLuongGiay IS NULL OR ThoiLuongGiay >= 0)
+  CONSTRAINT CK_LanLamBai_SoCau CHECK (SoCauDung >= 0 AND SoCauSai >= 0)
+  CONSTRAINT CK_LanLamBai_PhanTramDung CHECK (PhanTramDung IS NULL OR PhanTramDung BETWEEN 0 AND 100)
+  '''
+}
+
+Table dbo.ChiTietLanLamBai {
+  IDLanLam int [not null]
+  IDBaiTap int [not null]
+  CauTraLoi nvarchar(max)
+  Diem decimal(5,2) [not null, default: 0]
+  ThuTu int [not null, default: 1]
+  LaDung bit
+  DiemToiDa decimal(5,2) [not null, default: 1]
+  DaXemGoiY bit [not null, default: 0]
+  DaXemLoiGiai bit [not null, default: 0]
+  CauHoiSnapshot nvarchar(max)
+  DapAnDungSnapshot nvarchar(max)
+  LoiGiaiSnapshot nvarchar(max)
+  LuaChonSnapshot nvarchar(max)
+  LoaiBaiTapSnapshot nvarchar(50)
+  SaiSoChoPhepSnapshot decimal(18,6)
+
+  indexes {
+    (IDLanLam, IDBaiTap) [pk, name: 'PK_ChiTietLanLamBai']
+    (IDBaiTap) [name: 'IX_ChiTietLanLamBai_IDBaiTap']
+  }
+
+  Note: '''
+  CONSTRAINT CK_ChiTietLanLamBai_ThuTu CHECK (ThuTu > 0)
+  CONSTRAINT CK_ChiTietLanLamBai_Diem CHECK (Diem >= 0 AND DiemToiDa > 0)
+  '''
+}
+
+Table dbo.HoaChat {
+  IDHoaChat int [pk, increment, not null]
+  TenChat nvarchar(100) [not null]
+  CongThuc nvarchar(50) [not null]
+  LoaiChat nvarchar(50)
+  KhoiLuongMol decimal(10,4)
+  TrangThai nvarchar(20)
+  MauSac nvarchar(100)
+  TinhChat nvarchar(max)
+  UngDung nvarchar(max)
+  MoTa nvarchar(max)
+  DanhMucSandbox nvarchar(50)
+  LuonHienThiSandbox bit [not null, default: 0]
+  LaChatKhoiDau bit [not null, default: 0]
+  DoPHMacDinh decimal(4,2)
+  NongDoMacDinh decimal(8,4)
+  CoTheKeoTha bit [not null, default: 1]
+  QuyTac_Cation nvarchar(20)
+  QuyTac_DienTichCation int
+  QuyTac_Anion nvarchar(20)
+  QuyTac_DienTichAnion int
+  QuyTac_SoHAcid int
+  QuyTac_SoOHBazo int
+  QuyTac_DoHoatDongKimLoai int
+  QuyTac_DoTan nvarchar(30)
+  QuyTac_HienTuong nvarchar(max)
+  QuyTac_ChoPhep bit [not null, default: 1]
+
+  indexes {
+    (CongThuc) [unique, name: 'UQ_HoaChat_CongThuc']
+    (DanhMucSandbox) [name: 'IX_HoaChat_DanhMucSandbox']
+    (TenChat) [name: 'IX_HoaChat_TenChat']
+  }
+
+  Note: '''
+  CONSTRAINT CK_HoaChat_DoPH CHECK (DoPHMacDinh IS NULL OR DoPHMacDinh BETWEEN 0 AND 14)
+  CONSTRAINT CK_HoaChat_NongDo CHECK (NongDoMacDinh IS NULL OR NongDoMacDinh > 0)
+  '''
+}
+
+Table dbo.KhoHoaChatNguoiDung {
+  IDUser int [not null]
+  IDHoaChat int [not null]
+  NgayMoKhoa datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  indexes {
+    (IDUser, IDHoaChat) [pk, name: 'PK_KhoHoaChatNguoiDung']
+    (IDHoaChat) [name: 'IX_KhoHoaChatNguoiDung_IDHoaChat']
+  }
+}
+
+Table dbo.PhanUng {
+  IDPhanUng int [pk, increment, not null]
+  PhuongTrinh nvarchar(500) [not null]
+  HienTuong nvarchar(max)
+  GiaiThich nvarchar(max)
+  CoKetTua bit [not null, default: 0]
+  CoKhi bit [not null, default: 0]
+  DoiMau bit [not null, default: 0]
+  ToaNhiet bit [not null, default: 0]
+  GhiChu nvarchar(max)
+  MaQuyTac nvarchar(50)
+  LaNgoaiLeSandbox bit [not null, default: 0]
+  DoUuTienSandbox int [not null, default: 50]
+
+  indexes {
+    (PhuongTrinh) [unique, name: 'UQ_PhanUng_PhuongTrinh']
+  }
+}
+
+Table dbo.ChiTietPhanUng {
+  IDPhanUng int [not null]
+  IDHoaChat int [not null]
+  VaiTro nvarchar(20) [not null]
+  HeSo int [not null]
+
+  indexes {
+    (IDPhanUng, IDHoaChat, VaiTro) [pk, name: 'PK_ChiTietPhanUng']
+    (IDHoaChat) [name: 'IX_ChiTietPhanUng_IDHoaChat']
+  }
+
+  Note: '''
+  CONSTRAINT CK_ChiTietPhanUng_VaiTro CHECK (VaiTro IN (N'Reactant', N'Product'))
+  CONSTRAINT CK_ChiTietPhanUng_HeSo CHECK (HeSo > 0)
+  '''
+}
+
+Table dbo.DungCu {
+  IDDungCu int [pk, increment, not null]
+  TenDungCu nvarchar(100) [not null]
+  MoTa nvarchar(max)
+  NhomDungCu tinyint
+  VaiTroSandbox nvarchar(max)
+  LogicCode nvarchar(max)
+  FrontendHint nvarchar(max)
+  CoTheKeoTha bit [not null, default: 1]
+  ThuTuHienThi int
+
+  indexes {
+    (TenDungCu) [unique, name: 'UQ_DungCu_TenDungCu']
+    (NhomDungCu, ThuTuHienThi) [name: 'IX_DungCu_Nhom_ThuTu']
+  }
+
+  Note: '''
+  CONSTRAINT CK_DungCu_Nhom CHECK (NhomDungCu IS NULL OR NhomDungCu BETWEEN 1 AND 4)
+  CONSTRAINT CK_DungCu_ThuTu CHECK (ThuTuHienThi IS NULL OR ThuTuHienThi > 0)
+  '''
+}
+
+Table dbo.BangTuanHoan {
+  IDNguyenTo int [pk, increment, not null]
+  SoHieuNguyenTu int [not null]
+  KyHieu nvarchar(3) [not null]
+  TenNguyenTo nvarchar(100) [not null]
+  TenTiengAnh nvarchar(100)
+  KhoiLuongNguyenTu decimal(10,4)
+  ChuKy tinyint
+  Nhom tinyint
+  Khoi nvarchar(5)
+  LoaiNguyenTo nvarchar(50)
+  TrangThaiODieuKienThuong nvarchar(20)
+  MauSac nvarchar(100)
+  DoAmDien decimal(4,2)
+  CauHinhElectron nvarchar(max)
+  MoTa nvarchar(max)
+  UngDung nvarchar(max)
+  ImageUrl nvarchar(max)
+
+  indexes {
+    (SoHieuNguyenTu) [unique, name: 'UQ_BangTuanHoan_SoHieu']
+    (KyHieu) [unique, name: 'UQ_BangTuanHoan_KyHieu']
+    (TenNguyenTo) [name: 'IX_BangTuanHoan_TenNguyenTo']
+    (LoaiNguyenTo) [name: 'IX_BangTuanHoan_LoaiNguyenTo']
+  }
+
+  Note: '''
+  CONSTRAINT CK_BangTuanHoan_SoHieu CHECK (SoHieuNguyenTu > 0)
+  CONSTRAINT CK_BangTuanHoan_ChuKy CHECK (ChuKy IS NULL OR ChuKy BETWEEN 1 AND 7)
+  CONSTRAINT CK_BangTuanHoan_Nhom CHECK (Nhom IS NULL OR Nhom BETWEEN 1 AND 18)
+  '''
+}
+
+Table dbo.ThanhPhanHoaChat {
+  IDHoaChat int [not null]
+  IDNguyenTo int [not null]
+  SoNguyenTu int [not null]
+
+  indexes {
+    (IDHoaChat, IDNguyenTo) [pk, name: 'PK_ThanhPhanHoaChat']
+    (IDNguyenTo) [name: 'IX_ThanhPhanHoaChat_IDNguyenTo']
+  }
+
+  Note: '''
+  CONSTRAINT CK_ThanhPhanHoaChat_SoNguyenTu CHECK (SoNguyenTu > 0)
+  '''
+}
+
+Table dbo.ThuThachXuong {
+  IDThuThach int [pk, increment, not null]
+  TenThuThach nvarchar(150) [not null]
+  MoTa nvarchar(max)
+  DangHoatDong bit [not null, default: 1]
+  DoKho nvarchar(30) [not null]
+  NgayThuThach date
+  SlotThuThach int
+  Seed nvarchar(120)
+  PhienBanGenerator nvarchar(40)
+  MetadataJson nvarchar(max)
+  NguonTao nvarchar(40) [not null, default: 'AdminLegacy']
+  ThoiGianGioiHanGiay int [not null]
+  IDHoaChatMucTieu int [not null]
+  LuongMucTieu decimal(18,4) [not null]
+  DonViMucTieu nvarchar(20) [not null]
+  DiemCoBan int [not null, default: 100]
+  DiemThuongSom int [not null, default: 0]
+  NguongThuongSomGiay int [not null, default: 0]
+  DiemPhatTre int [not null, default: 0]
+  NgayTao datetime2 [not null, default: `SYSUTCDATETIME()`]
+  NgayCapNhat datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  indexes {
+    (DangHoatDong, DoKho) [name: 'IX_ThuThachXuong_DangHoatDong_DoKho']
+    (IDHoaChatMucTieu) [name: 'IX_ThuThachXuong_IDHoaChatMucTieu']
+  }
+
+  Note: '''
+  CONSTRAINT CK_ThuThachXuong_ThoiGian CHECK (ThoiGianGioiHanGiay > 0)
+  CONSTRAINT CK_ThuThachXuong_Slot CHECK (SlotThuThach IS NULL OR SlotThuThach BETWEEN 1 AND 5)
+  CONSTRAINT CK_ThuThachXuong_LuongMucTieu CHECK (LuongMucTieu > 0)
+  CONSTRAINT CK_ThuThachXuong_Diem CHECK (DiemCoBan >= 0 AND DiemThuongSom >= 0 AND NguongThuongSomGiay >= 0 AND DiemPhatTre >= 0)
+  CONSTRAINT CK_ThuThachXuong_DonVi CHECK (DonViMucTieu IN (N'g', N'ml', N'atm'))
+  CREATE UNIQUE INDEX UX_ThuThachXuong_Ngay_DoKho_Slot ON dbo.ThuThachXuong(NgayThuThach, DoKho, SlotThuThach) WHERE NgayThuThach IS NOT NULL AND SlotThuThach IS NOT NULL;
+  '''
+}
+
+Table dbo.ThuThachXuongTaiNguyen {
+  IDTaiNguyen int [pk, increment, not null]
+  IDThuThach int [not null]
+  IDHoaChat int [not null]
+  Luong decimal(18,4) [not null]
+  DonVi nvarchar(20) [not null]
+  ThuTu int [not null]
+
+  indexes {
+    (IDThuThach, IDHoaChat) [unique, name: 'UX_ThuThachXuongTaiNguyen_ThuThach_HoaChat']
+    (IDHoaChat) [name: 'IX_ThuThachXuongTaiNguyen_IDHoaChat']
+  }
+
+  Note: '''
+  CONSTRAINT CK_ThuThachXuongTaiNguyen_Luong CHECK (Luong > 0)
+  CONSTRAINT CK_ThuThachXuongTaiNguyen_DonVi CHECK (DonVi IN (N'g', N'ml', N'atm'))
+  CONSTRAINT CK_ThuThachXuongTaiNguyen_ThuTu CHECK (ThuTu > 0)
+  '''
+}
+
+Table dbo.PhienThuThachXuong {
+  IDPhien int [pk, increment, not null]
+  IDThuThach int [not null]
+  IDUser int [not null]
+  TrangThai nvarchar(30) [not null]
+  BatDauLuc datetime2 [not null]
+  HetHanLuc datetime2 [not null]
+  HoanThanhLuc datetime2
+  InventoryJson nvarchar(max) [not null]
+  LuongMucTieuDatDuoc decimal(18,4)
+  DatMucTieu bit [not null, default: 0]
+  SoPhanUng int [not null, default: 0]
+  SoLoi int [not null, default: 0]
+  TrangThaiNghiVan nvarchar(30) [not null, default: 'Normal']
+  LichSuSuKienJson nvarchar(max) [not null, default: '[]']
+  DiemCoBan int [not null, default: 0]
+  DiemThuong int [not null, default: 0]
+  DiemPhat int [not null, default: 0]
+  DiemCuoi int [not null, default: 0]
+  ThoiLuongGiay int
+  LyDoKetThuc nvarchar(200)
+
+  indexes {
+    (IDUser, IDThuThach, TrangThai) [name: 'IX_PhienThuThachXuong_User_Challenge_Status']
+    (IDUser, IDThuThach) [unique, name: 'UX_PhienThuThachXuong_User_Challenge']
+  }
+
+  Note: '''
+  CONSTRAINT CK_PhienThuThachXuong_TrangThai CHECK (TrangThai IN (N'Running', N'Completed', N'Failed', N'Expired', N'Dead'))
+  CONSTRAINT CK_PhienThuThachXuong_NghiVan CHECK (TrangThaiNghiVan IN (N'Normal', N'Suspicious', N'Invalid'))
+  CONSTRAINT CK_PhienThuThachXuong_Diem CHECK (DiemCoBan >= 0 AND DiemThuong >= 0 AND DiemPhat >= 0 AND DiemCuoi >= 0)
+  CONSTRAINT CK_PhienThuThachXuong_Dem CHECK (SoPhanUng >= 0 AND SoLoi >= 0)
+  CONSTRAINT CK_PhienThuThachXuong_ThoiLuong CHECK (ThoiLuongGiay IS NULL OR ThoiLuongGiay >= 0)
+  CREATE INDEX IX_PhienThuThachXuong_Leaderboard ON dbo.PhienThuThachXuong(IDThuThach, TrangThai, DiemCuoi DESC, ThoiLuongGiay ASC, HoanThanhLuc ASC);
+  '''
+}
+
+Table dbo.QuyLuatPhanUng {
+  IDQuyLuat int [pk, increment, not null]
+  MaQuyLuat nvarchar(80) [not null]
+  TenQuyLuat nvarchar(150) [not null]
+  MoTa nvarchar(max)
+  DangHoatDong bit [not null, default: 1]
+  DoUuTien int [not null, default: 100]
+  CanNhiet bit
+  KetQua_CoKhi bit
+  KetQua_CoKetTua bit
+  KetQua_DoiMau bit
+  KetQua_ToaNhiet bit
+  KetQua_NhietDoTangC decimal(8,2)
+  HienTuongTemplate nvarchar(max)
+  GiaiThichTemplate nvarchar(max)
+  NgayTao datetime2 [not null, default: `SYSUTCDATETIME()`]
+  NgayCapNhat datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  indexes {
+    (MaQuyLuat) [unique, name: 'UQ_QuyLuatPhanUng_MaQuyLuat']
+    (DangHoatDong, DoUuTien) [name: 'IX_QuyLuatPhanUng_DangHoatDong_DoUuTien']
+  }
+
+  Note: '''
+  CONSTRAINT CK_QuyLuatPhanUng_DoUuTien CHECK (DoUuTien >= 0)
+  '''
+}
+
+Table dbo.QuyLuatPhanUngSlot {
+  IDSlot int [pk, increment, not null]
+  IDQuyLuat int [not null]
+  KyHieuSlot nvarchar(20) [not null]
+  VaiTro nvarchar(20) [not null]
+  ThuTu int [not null]
+
+  indexes {
+    (IDQuyLuat, KyHieuSlot) [unique, name: 'UQ_QuyLuatPhanUngSlot_Key']
+  }
+
+  Note: '''
+  CONSTRAINT CK_QuyLuatPhanUngSlot_VaiTro CHECK (VaiTro IN (N'Reactant'))
+  '''
+}
+
+Table dbo.QuyLuatPhanUngDieuKien {
+  IDDieuKien int [pk, increment, not null]
+  IDQuyLuat int [not null]
+  TargetKind nvarchar(30) [not null]
+  TargetSlot nvarchar(20)
+  TargetProduct nvarchar(20)
+  Field nvarchar(80) [not null]
+  Operator nvarchar(30) [not null]
+  ValueKind nvarchar(30) [not null]
+  ValueText nvarchar(200)
+  CompareSlot nvarchar(20)
+  CompareField nvarchar(80)
+  GroupKey nvarchar(40)
+  GroupOperator nvarchar(10)
+
+  indexes {
+    (IDQuyLuat) [name: 'IX_QuyLuatPhanUngDieuKien_IDQuyLuat']
+  }
+
+  Note: '''
+  CONSTRAINT CK_QuyLuatPhanUngDieuKien_TargetKind CHECK (TargetKind IN (N'Slot', N'Request', N'Product', N'Inventory'))
+  CONSTRAINT CK_QuyLuatPhanUngDieuKien_Operator CHECK (Operator IN (N'Equals', N'NotEquals', N'GreaterThan', N'LessThan', N'GreaterThanOrEqual', N'LessThanOrEqual', N'In', N'Exists'))
+  CONSTRAINT CK_QuyLuatPhanUngDieuKien_ValueKind CHECK (ValueKind IN (N'Literal', N'ChemicalField', N'SlotField', N'ReferencedChemicalField', N'InventoryField'))
+  CONSTRAINT CK_QuyLuatPhanUngDieuKien_GroupOperator CHECK (GroupOperator IS NULL OR GroupOperator IN (N'All', N'Any'))
+  '''
+}
+
+Table dbo.QuyLuatPhanUngSanPham {
+  IDSanPham int [pk, increment, not null]
+  IDQuyLuat int [not null]
+  ThuTu int [not null]
+  KieuSanPham nvarchar(40) [not null]
+  FixedFormula nvarchar(80)
+  CationSourceSlot nvarchar(20)
+  AnionSourceSlot nvarchar(20)
+  SourceField nvarchar(80)
+  HeSoHint int
+
+  indexes {
+    (IDQuyLuat) [name: 'IX_QuyLuatPhanUngSanPham_IDQuyLuat']
+  }
+
+  Note: '''
+  CONSTRAINT CK_QuyLuatPhanUngSanPham_Kieu CHECK (KieuSanPham IN (N'FixedFormula', N'IonicFromSlots', N'HydroxideFromCation', N'OxideFromCation', N'IonicFromCationAndFixedAnion', N'AcidFromAnion', N'MetalFromCation', N'Expression'))
+  CONSTRAINT CK_QuyLuatPhanUngSanPham_HeSo CHECK (HeSoHint IS NULL OR HeSoHint > 0)
+  '''
+}
+
+Table dbo.QuyLuatPhanUngKetQuaDieuKien {
+  IDKetQua int [pk, increment, not null]
+  IDQuyLuat int [not null]
+  ThuTu int [not null]
+  OutputField nvarchar(40) [not null]
+  BoolValue bit
+  DecimalValue decimal(8,2)
+  TextValue nvarchar(max)
+  TargetKind nvarchar(30) [not null]
+  TargetSlot nvarchar(20)
+  TargetProduct nvarchar(20)
+  Field nvarchar(80) [not null]
+  Operator nvarchar(30) [not null]
+  ValueKind nvarchar(30) [not null]
+  ValueText nvarchar(200)
+  CompareSlot nvarchar(20)
+  CompareField nvarchar(80)
+
+  indexes {
+    (IDQuyLuat) [name: 'IX_QuyLuatPhanUngKetQuaDieuKien_IDQuyLuat']
+  }
+
+  Note: '''
+  CONSTRAINT CK_QuyLuatPhanUngKetQuaDieuKien_Output CHECK (OutputField IN (N'HasGas', N'KetQua_CoKhi', N'HasPrecipitate', N'KetQua_CoKetTua', N'HasColorChange', N'KetQua_DoiMau', N'IsExothermic', N'KetQua_ToaNhiet', N'TemperatureDeltaC', N'KetQua_NhietDoTangC', N'Phenomenon', N'HienTuong', N'Explanation', N'GiaiThich'))
+  CONSTRAINT CK_QuyLuatPhanUngKetQuaDieuKien_TargetKind CHECK (TargetKind IN (N'Slot', N'Request', N'Product', N'Inventory'))
+  CONSTRAINT CK_QuyLuatPhanUngKetQuaDieuKien_Operator CHECK (Operator IN (N'Equals', N'NotEquals', N'GreaterThan', N'LessThan', N'GreaterThanOrEqual', N'LessThanOrEqual', N'In', N'Exists'))
+  CONSTRAINT CK_QuyLuatPhanUngKetQuaDieuKien_ValueKind CHECK (ValueKind IN (N'Literal', N'ChemicalField', N'SlotField', N'ReferencedChemicalField', N'InventoryField'))
+  CONSTRAINT CK_QuyLuatPhanUngKetQuaDieuKien_Value CHECK (BoolValue IS NOT NULL OR DecimalValue IS NOT NULL OR TextValue IS NOT NULL)
+  '''
+}
+
+Table dbo.NguyenToTrangThaiOxiHoa {
+  IDTrangThaiOxiHoa int [pk, increment, not null]
+  IDNguyenTo int [not null]
+  SoOxiHoa int [not null]
+
+  indexes {
+    (IDNguyenTo, SoOxiHoa) [unique, name: 'UQ_NguyenToTrangThaiOxiHoa_Key']
+  }
+
+  Note: '''
+  CONSTRAINT CK_NguyenToTrangThaiOxiHoa_SoOxiHoa CHECK (SoOxiHoa BETWEEN -8 AND 8)
+  '''
+}
+
+Table dbo.HoaChatTrangThaiOxiHoa {
+  IDTrangThaiOxiHoa int [pk, increment, not null]
+  IDHoaChat int [not null]
+  IDNguyenTo int [not null]
+  SoOxiHoa int [not null]
+
+  indexes {
+    (IDHoaChat, IDNguyenTo, SoOxiHoa) [unique, name: 'UQ_HoaChatTrangThaiOxiHoa_Key']
+    (IDNguyenTo) [name: 'IX_HoaChatTrangThaiOxiHoa_IDNguyenTo']
+  }
+
+  Note: '''
+  CONSTRAINT CK_HoaChatTrangThaiOxiHoa_SoOxiHoa CHECK (SoOxiHoa BETWEEN -8 AND 8)
+  '''
+}
+
+Table dbo.HoaChatKhaNangRedox {
+  IDKhaNangRedox int [pk, increment, not null]
+  IDHoaChat int [not null]
+  VaiTro nvarchar(30) [not null]
+  DieuKien nvarchar(50)
+
+  indexes {
+    (IDHoaChat, VaiTro, DieuKien) [unique, name: 'UQ_HoaChatKhaNangRedox_Key']
+    (VaiTro) [name: 'IX_HoaChatKhaNangRedox_VaiTro']
+  }
+
+  Note: '''
+  CONSTRAINT CK_HoaChatKhaNangRedox_VaiTro CHECK (VaiTro IN (N'OxidizingAgent', N'ReducingAgent', N'Both', N'Neither'))
+  '''
+}
+
+Table dbo.HoaChatPhanUngVoiNuoc {
+  IDPhanUngVoiNuoc int [pk, increment, not null]
+  IDHoaChat int [not null]
+  PhaNuoc nvarchar(20) [not null]
+  NhietDoToiThieuC decimal(6,2)
+  NhietDoToiDaC decimal(6,2)
+  HoSanPham nvarchar(40) [not null]
+  DangHoatDong bit [not null, default: 1]
+
+  indexes {
+    (IDHoaChat, PhaNuoc, HoSanPham) [unique, name: 'UQ_HoaChatPhanUngVoiNuoc_Key']
+    (PhaNuoc) [name: 'IX_HoaChatPhanUngVoiNuoc_PhaNuoc']
+  }
+
+  Note: '''
+  CONSTRAINT CK_HoaChatPhanUngVoiNuoc_PhaNuoc CHECK (PhaNuoc IN (N'ColdWater', N'HotWater', N'Steam'))
+  CONSTRAINT CK_HoaChatPhanUngVoiNuoc_NhietDo CHECK (NhietDoToiThieuC IS NULL OR NhietDoToiDaC IS NULL OR NhietDoToiThieuC <= NhietDoToiDaC)
+  '''
+}
+
+Table dbo.HoaChatTinhLuongTinh {
+  IDTinhLuongTinh int [pk, increment, not null]
+  IDHoaChat int [not null]
+  DangChat nvarchar(30) [not null]
+  MoiTruong nvarchar(30) [not null]
+  CanNuoc bit [not null, default: 0]
+  HoSanPham nvarchar(40) [not null]
+  DangHoatDong bit [not null, default: 1]
+
+  indexes {
+    (IDHoaChat, DangChat, MoiTruong, HoSanPham) [unique, name: 'UQ_HoaChatTinhLuongTinh_Key']
+    (MoiTruong) [name: 'IX_HoaChatTinhLuongTinh_MoiTruong']
+  }
+
+  Note: '''
+  CONSTRAINT CK_HoaChatTinhLuongTinh_DangChat CHECK (DangChat IN (N'Metal', N'Oxide', N'Hydroxide'))
+  CONSTRAINT CK_HoaChatTinhLuongTinh_MoiTruong CHECK (MoiTruong IN (N'Acid', N'StrongBase'))
+  '''
+}
+
+Table dbo.HoaChatTinhAcid {
+  IDTinhAcid int [pk, increment, not null]
+  IDHoaChat int [not null]
+  KieuAcid nvarchar(30) [not null]
+  DieuKien nvarchar(50)
+  SanPhamKhu nvarchar(80)
+
+  indexes {
+    (IDHoaChat, KieuAcid, DieuKien, SanPhamKhu) [unique, name: 'UQ_HoaChatTinhAcid_Key']
+    (KieuAcid) [name: 'IX_HoaChatTinhAcid_KieuAcid']
+  }
+
+  Note: '''
+  CONSTRAINT CK_HoaChatTinhAcid_KieuAcid CHECK (KieuAcid IN (N'NonOxidizing', N'Oxidizing', N'ConditionDependent'))
+  '''
+}
+
+Table dbo.HoaChatHoSanPham {
+  IDHoSanPham int [pk, increment, not null]
+  IDHoaChat int [not null]
+  HoSanPham nvarchar(40) [not null]
+
+  indexes {
+    (IDHoaChat, HoSanPham) [unique, name: 'UQ_HoaChatHoSanPham_Key']
+    (HoSanPham) [name: 'IX_HoaChatHoSanPham_HoSanPham']
+  }
+}
+
+Table dbo.VeChungToi {
+  IDVeChungToi int [pk, increment, not null]
+  TieuDe nvarchar(150) [not null]
+  NoiDung nvarchar(max) [not null]
+  ImageUrl nvarchar(max)
+  ThuTu int [not null]
+  DangHienThi bit [not null, default: 1]
+  NgayCapNhat datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  indexes {
+    (DangHienThi, ThuTu) [name: 'IX_VeChungToi_DangHienThi_ThuTu']
+  }
+
+  Note: '''
+  CONSTRAINT CK_VeChungToi_ThuTu CHECK (ThuTu > 0)
+  '''
+}
+
+Table dbo.DeXuatTriThucAI {
+  IDDeXuat int [pk, increment, not null]
+  LoaiThucThe nvarchar(20) [not null]
+  TrangThai nvarchar(30) [not null]
+  KhoaUngVien nvarchar(200) [not null]
+  TuKhoa nvarchar(200) [not null]
+  NguonYeuCauJson nvarchar(max)
+  PayloadJson nvarchar(max)
+  PhienBanSchema int [not null, default: 1]
+  KetQuaKiemTraJson nvarchar(max)
+  Revision int [not null, default: 0]
+  NguonGoc nvarchar(20) [not null]
+  IDNguoiYeuCau int
+  IDNguoiDuyet int
+  LyDoQuyetDinh nvarchar(1000)
+  IDBanGhiDich int
+  NgayTao datetime2 [not null, default: `SYSUTCDATETIME()`]
+  NgayCapNhat datetime2 [not null, default: `SYSUTCDATETIME()`]
+  NgayQuyetDinh datetime2
+  RowVer rowversion [not null]
+
+  indexes {
+    (TrangThai, NgayTao) [name: 'IX_DeXuatTriThucAI_TrangThai_NgayTao']
+  }
+
+  Note: '''
+  CONSTRAINT CK_DeXuatTriThucAI_LoaiThucThe CHECK (LoaiThucThe IN (N'Chemical', N'Element', N'ReactionRule', N'Reaction'))
+  CONSTRAINT CK_DeXuatTriThucAI_TrangThai CHECK (TrangThai IN (N'Collecting', N'InsufficientEvidence', N'ValidationFailed', N'Pending', N'Approved', N'Denied', N'ApplyFailed'))
+  CONSTRAINT CK_DeXuatTriThucAI_NguonGoc CHECK (NguonGoc IN (N'Admin', N'Discovery'))
+  CREATE UNIQUE INDEX UX_DeXuatTriThucAI_DangMo ON dbo.DeXuatTriThucAI(LoaiThucThe, KhoaUngVien) WHERE TrangThai IN (N'Collecting', N'InsufficientEvidence', N'ValidationFailed', N'Pending', N'ApplyFailed');
+  '''
+}
+
+Table dbo.NguonDeXuatTriThucAI {
+  IDNguon bigint [pk, increment, not null]
+  IDDeXuat int [not null]
+  CoQuan nvarchar(100) [not null]
+  Url nvarchar(1000) [not null]
+  DinhDanh nvarchar(200)
+  NgayTruyCap datetime2 [not null]
+  PhienBan nvarchar(100)
+  HashNoiDung char(64) [not null]
+  TrichDoan nvarchar(max)
+  TruongHoTroJson nvarchar(max)
+
+  indexes {
+    (IDDeXuat) [name: 'IX_NguonDeXuatTriThucAI_IDDeXuat']
+  }
+}
+
+Table dbo.PhienBanDeXuatTriThucAI {
+  IDPhienBan bigint [pk, increment, not null]
+  IDDeXuat int [not null]
+  Revision int [not null]
+  PayloadJson nvarchar(max) [not null]
+  NguonGoc nvarchar(20) [not null]
+  IDNguoiSua int
+  NgayTao datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  indexes {
+    (IDDeXuat, Revision) [unique, name: 'UQ_PhienBanDeXuatTriThucAI_Revision']
+  }
+
+  Note: '''
+  CONSTRAINT CK_PhienBanDeXuatTriThucAI_NguonGoc CHECK (NguonGoc IN (N'Extraction', N'AdminEdit'))
+  '''
+}
+
+Table dbo.CongViecDeXuatTriThucAI {
+  IDCongViec bigint [pk, increment, not null]
+  IDDeXuat int [not null]
+  TrangThai nvarchar(20) [not null]
+  SoLanThu int [not null, default: 0]
+  GiuDen datetime2
+  ChayLaiSau datetime2
+  Loi nvarchar(1000)
+  Provider nvarchar(50)
+  Model nvarchar(100)
+  PhienBanPrompt nvarchar(20)
+  ThoiLuongMs int
+  TokenVao int
+  TokenRa int
+  NgayTao datetime2 [not null, default: `SYSUTCDATETIME()`]
+  BatDauLuc datetime2
+  KetThucLuc datetime2
+
+  indexes {
+    (TrangThai, ChayLaiSau) [name: 'IX_CongViecDeXuatTriThucAI_TrangThai']
+  }
+
+  Note: '''
+  CONSTRAINT CK_CongViecDeXuatTriThucAI_TrangThai CHECK (TrangThai IN (N'Queued', N'Running', N'Succeeded', N'Failed', N'Cancelled'))
+  CREATE UNIQUE INDEX UX_CongViecDeXuatTriThucAI_DangChay ON dbo.CongViecDeXuatTriThucAI(IDDeXuat) WHERE TrangThai IN (N'Queued', N'Running');
+  '''
+}
+
+Ref FK_NguoiDung_Role: dbo.NguoiDung.IDRole > dbo.Role.IDRole [delete: no action]
+Ref FK_NhatKyQuanTri_NguoiDung: dbo.NhatKyQuanTri.IDAdmin > dbo.NguoiDung.IDUser [delete: no action]
+Ref FK_NhatKyHoatDong_NguoiDung: dbo.NhatKyHoatDong.IDUser > dbo.NguoiDung.IDUser [delete: set null]
+Ref FK_GioiHanSuDung_NguoiDung: dbo.GioiHanSuDung.IDUser > dbo.NguoiDung.IDUser [delete: cascade]
+Ref FK_DonThanhToan_NguoiDung: dbo.DonThanhToan.IDUser > dbo.NguoiDung.IDUser [delete: no action]
+Ref FK_GiaoDichThanhToan_DonThanhToan: dbo.GiaoDichThanhToan.IDDonThanhToan > dbo.DonThanhToan.IDDonThanhToan [delete: cascade]
+Ref FK_GiaoDichThanhToan_Admin: dbo.GiaoDichThanhToan.IDXacNhanBoiAdmin > dbo.NguoiDung.IDUser [delete: no action]
+Ref FK_PasswordResetTokens_NguoiDung: dbo.PasswordResetTokens.IDUser > dbo.NguoiDung.IDUser [delete: cascade]
+Ref FK_AuthSessions_NguoiDung: dbo.AuthSessions.IDUser > dbo.NguoiDung.IDUser [delete: cascade]
+Ref FK_BaiHoc_ChuongHoc: dbo.BaiHoc.IDChuong > dbo.ChuongHoc.IDChuong [delete: cascade]
+Ref FK_GhiChu_NguoiDung: dbo.GhiChu.IDUser > dbo.NguoiDung.IDUser [delete: cascade]
+Ref FK_GhiChu_BaiHoc: dbo.GhiChu.IDBaiHoc > dbo.BaiHoc.IDBaiHoc [delete: set null]
+Ref FK_TienDoHocTap_NguoiDung: dbo.TienDoHocTap.IDUser > dbo.NguoiDung.IDUser [delete: cascade]
+Ref FK_TienDoHocTap_BaiHoc: dbo.TienDoHocTap.IDBaiHoc > dbo.BaiHoc.IDBaiHoc [delete: no action]
+Ref FK_HoSoHocTap_NguoiDung: dbo.HoSoHocTap.IDUser > dbo.NguoiDung.IDUser [delete: cascade]
+Ref FK_DeBaiTap_BaiHoc: dbo.DeBaiTap.IDBaiHoc > dbo.BaiHoc.IDBaiHoc [delete: cascade]
+Ref FK_BaiTap_BaiHoc: dbo.BaiTap.IDBaiHoc > dbo.BaiHoc.IDBaiHoc [delete: no action]
+Ref FK_ChiTietDeBaiTap_DeBaiTap: dbo.ChiTietDeBaiTap.IDDeBaiTap > dbo.DeBaiTap.IDDeBaiTap [delete: cascade]
+Ref FK_ChiTietDeBaiTap_BaiTap: dbo.ChiTietDeBaiTap.IDBaiTap > dbo.BaiTap.IDBaiTap [delete: no action]
+Ref FK_LuaChon_BaiTap: dbo.LuaChon.IDBaiTap > dbo.BaiTap.IDBaiTap [delete: cascade]
+Ref FK_BaiKiemTra_ChuongHoc: dbo.BaiKiemTra.IDChuong > dbo.ChuongHoc.IDChuong [delete: set null]
+Ref FK_BaiKiemTra_BaiHoc: dbo.BaiKiemTra.IDBaiHoc > dbo.BaiHoc.IDBaiHoc [delete: no action]
+Ref FK_ChiTietBaiKiemTra_BaiKiemTra: dbo.ChiTietBaiKiemTra.IDBaiKiemTra > dbo.BaiKiemTra.IDBaiKiemTra [delete: cascade]
+Ref FK_ChiTietBaiKiemTra_BaiTap: dbo.ChiTietBaiKiemTra.IDBaiTap > dbo.BaiTap.IDBaiTap [delete: no action]
+Ref FK_LanLamBai_NguoiDung: dbo.LanLamBai.IDUser > dbo.NguoiDung.IDUser [delete: cascade]
+Ref FK_LanLamBai_BaiKiemTra: dbo.LanLamBai.IDBaiKiemTra > dbo.BaiKiemTra.IDBaiKiemTra [delete: set null]
+Ref FK_LanLamBai_BaiHoc: dbo.LanLamBai.IDBaiHoc > dbo.BaiHoc.IDBaiHoc [delete: no action]
+Ref FK_LanLamBai_DeBaiTap: dbo.LanLamBai.IDDeBaiTap > dbo.DeBaiTap.IDDeBaiTap [delete: set null]
+Ref FK_ChiTietLanLamBai_LanLamBai: dbo.ChiTietLanLamBai.IDLanLam > dbo.LanLamBai.IDLanLam [delete: cascade]
+Ref FK_ChiTietLanLamBai_BaiTap: dbo.ChiTietLanLamBai.IDBaiTap > dbo.BaiTap.IDBaiTap [delete: no action]
+Ref FK_KhoHoaChatNguoiDung_NguoiDung: dbo.KhoHoaChatNguoiDung.IDUser > dbo.NguoiDung.IDUser [delete: cascade]
+Ref FK_KhoHoaChatNguoiDung_HoaChat: dbo.KhoHoaChatNguoiDung.IDHoaChat > dbo.HoaChat.IDHoaChat [delete: cascade]
+Ref FK_ThuThachXuong_HoaChatMucTieu: dbo.ThuThachXuong.IDHoaChatMucTieu > dbo.HoaChat.IDHoaChat [delete: no action]
+Ref FK_ThuThachXuongTaiNguyen_ThuThachXuong: dbo.ThuThachXuongTaiNguyen.IDThuThach > dbo.ThuThachXuong.IDThuThach [delete: cascade]
+Ref FK_ThuThachXuongTaiNguyen_HoaChat: dbo.ThuThachXuongTaiNguyen.IDHoaChat > dbo.HoaChat.IDHoaChat [delete: no action]
+Ref FK_PhienThuThachXuong_ThuThachXuong: dbo.PhienThuThachXuong.IDThuThach > dbo.ThuThachXuong.IDThuThach [delete: no action]
+Ref FK_PhienThuThachXuong_NguoiDung: dbo.PhienThuThachXuong.IDUser > dbo.NguoiDung.IDUser [delete: cascade]
+Ref FK_ChiTietPhanUng_PhanUng: dbo.ChiTietPhanUng.IDPhanUng > dbo.PhanUng.IDPhanUng [delete: cascade]
+Ref FK_ChiTietPhanUng_HoaChat: dbo.ChiTietPhanUng.IDHoaChat > dbo.HoaChat.IDHoaChat [delete: no action]
+Ref FK_QuyLuatPhanUngSlot_QuyLuatPhanUng: dbo.QuyLuatPhanUngSlot.IDQuyLuat > dbo.QuyLuatPhanUng.IDQuyLuat [delete: cascade]
+Ref FK_QuyLuatPhanUngDieuKien_QuyLuatPhanUng: dbo.QuyLuatPhanUngDieuKien.IDQuyLuat > dbo.QuyLuatPhanUng.IDQuyLuat [delete: cascade]
+Ref FK_QuyLuatPhanUngSanPham_QuyLuatPhanUng: dbo.QuyLuatPhanUngSanPham.IDQuyLuat > dbo.QuyLuatPhanUng.IDQuyLuat [delete: cascade]
+Ref FK_QuyLuatPhanUngKetQuaDieuKien_QuyLuatPhanUng: dbo.QuyLuatPhanUngKetQuaDieuKien.IDQuyLuat > dbo.QuyLuatPhanUng.IDQuyLuat [delete: cascade]
+Ref FK_ThanhPhanHoaChat_HoaChat: dbo.ThanhPhanHoaChat.IDHoaChat > dbo.HoaChat.IDHoaChat [delete: cascade]
+Ref FK_ThanhPhanHoaChat_BangTuanHoan: dbo.ThanhPhanHoaChat.IDNguyenTo > dbo.BangTuanHoan.IDNguyenTo [delete: cascade]
+Ref FK_NguyenToTrangThaiOxiHoa_BangTuanHoan: dbo.NguyenToTrangThaiOxiHoa.IDNguyenTo > dbo.BangTuanHoan.IDNguyenTo [delete: cascade]
+Ref FK_HoaChatTrangThaiOxiHoa_HoaChat: dbo.HoaChatTrangThaiOxiHoa.IDHoaChat > dbo.HoaChat.IDHoaChat [delete: cascade]
+Ref FK_HoaChatTrangThaiOxiHoa_BangTuanHoan: dbo.HoaChatTrangThaiOxiHoa.IDNguyenTo > dbo.BangTuanHoan.IDNguyenTo [delete: cascade]
+Ref FK_HoaChatKhaNangRedox_HoaChat: dbo.HoaChatKhaNangRedox.IDHoaChat > dbo.HoaChat.IDHoaChat [delete: cascade]
+Ref FK_HoaChatPhanUngVoiNuoc_HoaChat: dbo.HoaChatPhanUngVoiNuoc.IDHoaChat > dbo.HoaChat.IDHoaChat [delete: cascade]
+Ref FK_HoaChatTinhLuongTinh_HoaChat: dbo.HoaChatTinhLuongTinh.IDHoaChat > dbo.HoaChat.IDHoaChat [delete: cascade]
+Ref FK_HoaChatTinhAcid_HoaChat: dbo.HoaChatTinhAcid.IDHoaChat > dbo.HoaChat.IDHoaChat [delete: cascade]
+Ref FK_HoaChatHoSanPham_HoaChat: dbo.HoaChatHoSanPham.IDHoaChat > dbo.HoaChat.IDHoaChat [delete: cascade]
+Ref FK_DeXuatTriThucAI_NguoiYeuCau: dbo.DeXuatTriThucAI.IDNguoiYeuCau > dbo.NguoiDung.IDUser [delete: no action]
+Ref FK_DeXuatTriThucAI_NguoiDuyet: dbo.DeXuatTriThucAI.IDNguoiDuyet > dbo.NguoiDung.IDUser [delete: no action]
+Ref FK_NguonDeXuatTriThucAI_DeXuat: dbo.NguonDeXuatTriThucAI.IDDeXuat > dbo.DeXuatTriThucAI.IDDeXuat [delete: cascade]
+Ref FK_PhienBanDeXuatTriThucAI_DeXuat: dbo.PhienBanDeXuatTriThucAI.IDDeXuat > dbo.DeXuatTriThucAI.IDDeXuat [delete: cascade]
+Ref FK_PhienBanDeXuatTriThucAI_NguoiSua: dbo.PhienBanDeXuatTriThucAI.IDNguoiSua > dbo.NguoiDung.IDUser [delete: no action]
+Ref FK_CongViecDeXuatTriThucAI_DeXuat: dbo.CongViecDeXuatTriThucAI.IDDeXuat > dbo.DeXuatTriThucAI.IDDeXuat [delete: cascade]

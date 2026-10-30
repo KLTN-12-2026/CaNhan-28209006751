@@ -1,0 +1,152 @@
+.page-header {
+  --home-ink: #064e3b;
+  --home-green: #0a826a;
+  --home-red: #f25f70;
+  margin-bottom: 28px;
+  color: var(--home-ink);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.home-topbar {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin: -14px 0 8px;
+}
+
+.home-topbar > :not(.profile-name) { margin-right: auto; }
+
+.profile-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 280px;
+  min-width: 0;
+  border: 0;
+  padding: 8px 4px;
+  color: var(--home-ink);
+  background: transparent;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.profile-name:hover {
+  color: var(--home-green);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.profile-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-name-avatar {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.chapter-banner {
+  position: relative;
+  min-height: 144px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  overflow: hidden;
+  border: 1px solid #bfe2cb;
+  border-radius: 8px;
+  padding: 28px 34px;
+  background: #eaf8ef;
+}
+
+.chapter-back {
+  position: relative;
+  z-index: 1;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--home-ink);
+  background: #d1f3dd;
+  cursor: pointer;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.chapter-back:hover {
+  background: #bdeccd;
+  transform: translateX(-2px);
+}
+
+.chapter-kicker {
+  color: var(--home-green);
+  font-size: 13px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.chapter-banner h1 {
+  position: relative;
+  z-index: 1;
+  max-width: 620px;
+  margin: 8px 0 0;
+  font-size: clamp(27px, 3vw, 42px);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.chapter-banner p {
+  position: relative;
+  z-index: 1;
+  max-width: 620px;
+  margin: 8px 0 0;
+  color: #557267;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.chapter-orbit {
+  position: absolute;
+  right: 24px;
+  width: 170px;
+  height: 170px;
+  opacity: 0.42;
+}
+
+.chapter-orbit span {
+  position: absolute;
+  inset: 61px 8px;
+  border: 2px solid var(--home-green);
+  border-radius: 50%;
+}
+
+.chapter-orbit span:nth-child(2) { transform: rotate(60deg); }
+.chapter-orbit span:nth-child(3) { transform: rotate(-60deg); }
+
+.chapter-orbit i {
+  position: absolute;
+  inset: 72px;
+  border-radius: 50%;
+  background: var(--home-red);
+}
+
+.page-header :focus-visible {
+  outline: 2px solid var(--home-green);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .home-topbar { margin-top: 0; }
+  .chapter-banner { min-height: 130px; padding: 22px; gap: 14px; }
+  .chapter-orbit { right: -55px; }
+}

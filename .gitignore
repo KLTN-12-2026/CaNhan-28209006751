@@ -1,0 +1,11 @@
+node_modules/
+frontend/.vite/
+.tmp/
+.npm-cache/
+.vs/
+dist/
+*.tsbuildinfo
+bin/
+obj/
+backend/uploads/
+/backend/Atomos.API/wwwroot/uploads/

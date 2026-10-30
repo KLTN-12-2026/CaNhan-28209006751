@@ -1,0 +1,128 @@
+.app-shell {
+  --home-ink: #064e3b;
+  --home-green: #0a826a;
+  --home-red: #f25f70;
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  min-height: 100vh;
+  background: #f7fcf9;
+}
+
+.app-shell.is-bare { display: block; }
+.app-shell-content { min-width: 0; }
+
+/* Main sidebar */
+.home-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 18px 20px;
+  border-right: 1px solid #cce8d6;
+  color: var(--home-ink);
+  background: rgba(255, 255, 255, 0.96);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.home-brand,
+.home-nav-item,
+.home-logout {
+  font: inherit;
+  text-decoration: none;
+}
+
+.home-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 4px 8px 28px;
+  color: var(--home-ink);
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.home-brand-mark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #6aeba5;
+}
+
+.home-brand-mark svg { font-size: 23px; }
+
+.home-nav {
+  display: grid;
+  gap: 7px;
+}
+
+.home-nav-item,
+.home-logout {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border: 0;
+  border-radius: 7px;
+  padding: 0 14px;
+  color: #3f6255;
+  background: transparent;
+  font-weight: 750;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.home-nav-item:hover,
+.home-logout:hover { transform: translateY(-1px); }
+
+.home-nav-item:hover,
+.home-nav-item.is-active {
+  color: var(--home-ink);
+  background: #dff7e7;
+}
+
+.home-nav-item.is-active { box-shadow: inset 3px 0 var(--home-green); }
+
+.home-nav-item svg,
+.home-logout svg { font-size: 21px; }
+
+.home-logout {
+  margin-top: auto;
+  color: #a43846;
+}
+
+.home-logout:hover { background: #fff0f2; }
+
+.home-sidebar :focus-visible {
+  outline: 2px solid var(--home-green);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1120px) {
+  .app-shell { grid-template-columns: 210px minmax(0, 1fr); }
+}
+
+@media (max-width: 760px) {
+  .app-shell { display: block; }
+  .home-sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    padding: 14px;
+    border-right: 0;
+    border-bottom: 1px solid #cce8d6;
+  }
+  .home-brand { padding-bottom: 12px; }
+  .home-nav {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 3px;
+    scrollbar-width: none;
+  }
+  .home-nav::-webkit-scrollbar { display: none; }
+  .home-nav-item { flex: 0 0 auto; }
+  .home-logout { margin-top: 8px; }
+}
